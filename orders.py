@@ -5,7 +5,7 @@ import auth
 TAX = 0.15
 INVOICE_SEPARATOR = "==================================="
 
-def calculate_coupon_discount(total, coupon, token):
+def calculate_coupon_discount(total, coupon):
     if coupon == "WELCOME10":
         return total * 0.9
     elif coupon == "BLACKFRIDAY":
@@ -39,7 +39,7 @@ def process_order(token, items, coupon=None, shipping="standard", log=None):
         if book and book[3] >= item["qty"]:
             total += book[2] * item["qty"]
 
-    total = calculate_coupon_discount(total, coupon, token)
+    total = calculate_coupon_discount(total, coupon)
     total += calculate_shipping_cost(shipping)
     total += total * TAX
 
