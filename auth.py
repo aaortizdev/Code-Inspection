@@ -26,7 +26,7 @@ def login(username, password):
         print("User not found")
         return None
     if user[1] == hash_password(password):
-        token = secrets.token.hex(16)
+        token = secrets.token_hex(16)
         sessions[token] = username
         return token
     else:
