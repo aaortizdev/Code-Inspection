@@ -11,9 +11,7 @@ def calculate_coupon_discount(total, coupon, token):
     elif coupon == "BLACKFRIDAY":
         return total * 0.5
     elif coupon == "STAFF":
-        if auth.is_admin(token):
-            return total * 0.7
-        return total * 0.7
+        return total * 0.7 
     return total
 
 def calculate_shipping_cost(shipping):
@@ -49,47 +47,39 @@ def process_order(token, items, coupon=None, shipping="standard", log=None):
     log.append({"order_id": order_id, "username": username, "total": total})
     return total
 
-def print_invoice(username, items):
+def _print_document_details(title, username, items):
+    """Función auxiliar para reutilizar la lógica compartida entre facturas y cotizaciones."""
     print(INVOICE_SEPARATOR)
-    print("BOOKSTORE INVOICE")
+    print(title)
     print("Customer: " + username)
     print(INVOICE_SEPARATOR)
+    
     subtotal = 0
     for item in items:
         book = database.get_book(item["book_id"])
         line_total = book[2] * item["qty"]
-        subtotal = subtotal + line_total
+        subtotal += line_total
         print(book[1] + " x" + str(item["qty"]) + " = " + str(line_total))
+        
     tax = subtotal * TAX
     print("Subtotal: " + str(round(subtotal, 2)))
     print("Tax: " + str(round(tax, 2)))
     print("Total: " + str(round(subtotal + tax, 2)))
-    print(INVOICE_SEPARATOR)
+    return subtotal
 
+def print_invoice(username, items):
+    _print_document_details("BOOKSTORE INVOICE", username, items)
+    print(INVOICE_SEPARATOR)
 
 def print_quote(username, items):
-    print(INVOICE_SEPARATOR)
-    print("BOOKSTORE QUOTE")
-    print("Customer: " + username)
-    print(INVOICE_SEPARATOR)
-    subtotal = 0
-    for item in items:
-        book = database.get_book(item["book_id"])
-        line_total = book[2] * item["qty"]
-        subtotal = subtotal + line_total
-        print(book[1] + " x" + str(item["qty"]) + " = " + str(line_total))
-    tax = subtotal * TAX
-    print("Subtotal: " + str(round(subtotal, 2)))
-    print("Tax: " + str(round(tax, 2)))
-    print("Total: " + str(round(subtotal + tax, 2)))
+    _print_document_details("BOOKSTORE QUOTE", username, items)
     print("This quote is valid for 7 days.")
     print(INVOICE_SEPARATOR)
-
 
 def cancel_order(order_id):
     try:
         conn = database.get_connection()
-        conn.execute(f"UPDATE orders SET status = 'CANCELLED' WHERE id = {order_id}")
+        conn.execute("UPDATE orders SET status = 'CANCELLED' WHERE id = ?", (order_id,))
         conn.commit()
-    except:
+    except Exception:
         pass
